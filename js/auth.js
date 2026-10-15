@@ -26,6 +26,8 @@
   //    escrituras que sí los cambian (ACCIONES_QUE_CAMBIAN_CATALOGOS) para descartarlos.
   // descargarArchivo no está en ninguna lista a propósito: no cambia datos y no debe repetirse en paralelo (es pesada).
   const ACCIONES_QUE_CAMBIAN_DATOS = ['sincronizarArchivos', 'crearUsuario', 'editarUsuario'];
+  // Escrituras largas que NO se repiten en paralelo al tardar: la segunda copia solo esperaría el bloqueo y respondería 'ocupado'.
+  const SIN_REFUERZO = ['sincronizarArchivos'];
   const LECTURAS = ['sesion', 'archivos', 'usuarios', 'resumen', 'metricas'];
   const CATALOGOS_ESTABLES = [];
   const ACCIONES_QUE_CAMBIAN_CATALOGOS = [];
@@ -149,7 +151,7 @@
       if (LECTURAS.indexOf(accion) !== -1) {
         pedir = function () { return window.Api.post(accion, payload, sesion.token); };
         espera = ESPERA_REFUERZO_LECTURA_MS;
-      } else if (requestId) {
+      } else if (requestId && SIN_REFUERZO.indexOf(accion) === -1) {
         // Con el mismo requestId el servidor nunca duplica una escritura: repetirla en paralelo es seguro.
         pedir = function () { return window.Api.post(accion, payload, sesion.token, requestId); };
         espera = ESPERA_REFUERZO_ESCRITURA_MS;

@@ -55,34 +55,67 @@ function textoArchivo_(valor, max) {
   return String(valor === null || valor === undefined ? '' : valor).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+var MIME_CARPETA_ = 'application/vnd.google-apps.folder';
+
+/**
+ * Hijos directos de una carpeta: [{ id, name, mime, size }] (las subcarpetas traen mime de carpeta). Sin la papelera.
+ * Con el servicio avanzado Drive (v3, declarado en appsscript.json) es UNA llamada por carpeta; leer archivo por archivo con
+ * DriveApp cuesta varias llamadas por archivo y una carpeta grande rebasaba el tiempo de espera. Si el servicio avanzado no
+ * está disponible se usa DriveApp (más lento pero equivalente). El ID de carpeta solo trae [A-Za-z0-9_-]: no inyecta en la consulta.
+ */
+function hijosDeCarpeta_(idCarpeta) {
+  var lista = [];
+  if (typeof Drive !== 'undefined' && Drive.Files && typeof Drive.Files.list === 'function') {
+    var pagina = null;
+    do {
+      var r = Drive.Files.list({
+        q: "'" + idCarpeta + "' in parents and trashed = false", fields: 'nextPageToken, files(id, name, mimeType, size)', pageSize: 1000,
+        pageToken: pagina || undefined, supportsAllDrives: true, includeItemsFromAllDrives: true
+      });
+      (r.files || []).forEach(function (f) { lista.push({ id: String(f.id), name: String(f.name), mime: String(f.mimeType), size: Number(f.size) || 0 }); });
+      pagina = r.nextPageToken || null;
+    } while (pagina);
+    return lista;
+  }
+  var carpeta = DriveApp.getFolderById(idCarpeta);
+  var archivosIt = carpeta.getFiles();
+  while (archivosIt.hasNext()) {
+    var f = archivosIt.next();
+    if (!f.isTrashed()) { lista.push({ id: String(f.getId()), name: String(f.getName()), mime: String(f.getMimeType()), size: Number(f.getSize()) || 0 }); }
+  }
+  var carpetasIt = carpeta.getFolders();
+  while (carpetasIt.hasNext()) {
+    var c = carpetasIt.next();
+    lista.push({ id: String(c.getId()), name: String(c.getName()), mime: MIME_CARPETA_, size: 0 });
+  }
+  return lista;
+}
+
 /**
  * Recorre la carpeta (y sus subcarpetas) y devuelve los archivos descargables. La categoría es la ruta de subcarpetas.
  * Omite la papelera, los accesos directos y los tipos de Google que no se pueden exportar (formularios, sitios…).
  */
 function listarCarpetaDrive_(idCarpeta) {
-  var raiz = DriveApp.getFolderById(idCarpeta);
-  var pendientes = [{ carpeta: raiz, ruta: '' }];
+  DriveApp.getFolderById(idCarpeta);   // falla si la carpeta no existe o la cuenta no tiene acceso (el servicio avanzado devolvería una lista vacía)
+  var pendientes = [{ id: idCarpeta, ruta: '' }];
   var archivos = [];
   var truncado = false;
   while (pendientes.length && !truncado) {
     var actual = pendientes.shift();
-    var archivosIt = actual.carpeta.getFiles();
-    while (archivosIt.hasNext()) {
-      var f = archivosIt.next();
-      var mime = String(f.getMimeType());
-      var nativo = /^application\/vnd\.google-apps\.(.+)$/.exec(mime);
-      if (f.isTrashed() || (nativo && TIPOS_NATIVOS_EXPORTABLES_.indexOf(nativo[1]) === -1)) { continue; }
-      if (archivos.length >= MAX_ARCHIVOS_SYNC) { truncado = true; break; }
+    hijosDeCarpeta_(actual.id).forEach(function (h) {
+      if (truncado) { return; }
+      if (h.mime === MIME_CARPETA_) {
+        pendientes.push({ id: h.id, ruta: actual.ruta ? actual.ruta + ' / ' + h.name : h.name });
+        return;
+      }
+      var nativo = /^application\/vnd\.google-apps\.(.+)$/.exec(h.mime);
+      if (nativo && TIPOS_NATIVOS_EXPORTABLES_.indexOf(nativo[1]) === -1) { return; }
+      if (archivos.length >= MAX_ARCHIVOS_SYNC) { truncado = true; return; }
       archivos.push({
-        driveId: String(f.getId()), nombre: textoArchivo_(f.getName(), NOMBRE_ARCHIVO_MAX) || 'Sin nombre', mime: mime,
-        tamano: nativo ? 0 : Number(f.getSize()) || 0, categoria: textoArchivo_(actual.ruta, 100) || 'General'
+        driveId: h.id, nombre: textoArchivo_(h.name, NOMBRE_ARCHIVO_MAX) || 'Sin nombre', mime: h.mime,
+        tamano: nativo ? 0 : h.size, categoria: textoArchivo_(actual.ruta, 100) || 'General'
       });
-    }
-    var carpetasIt = actual.carpeta.getFolders();
-    while (carpetasIt.hasNext()) {
-      var c = carpetasIt.next();
-      pendientes.push({ carpeta: c, ruta: actual.ruta ? actual.ruta + ' / ' + c.getName() : String(c.getName()) });
-    }
+    });
   }
   return { archivos: archivos, truncado: truncado };
 }
@@ -133,15 +166,17 @@ function accionSincronizarArchivos_(payload, sesion, token, requestId) {
     leerFilas_('ARCHIVOS').forEach(function (a) { existentes[String(a.DRIVE_ID)] = a; });
     var vistos = {};
     var cuenta = { nuevos: 0, actualizados: 0, inactivados: 0 };
+    var filasNuevas = [];
 
     listado.archivos.forEach(function (d) {
+      if (vistos[d.driveId]) { return; }   // un archivo con varios padres aparece más de una vez: se registra una sola
       vistos[d.driveId] = true;
       var previo = existentes[d.driveId];
       if (!previo) {
-        insertarFila_('ARCHIVOS', {
+        filasNuevas.push(filaParaHoja_('ARCHIVOS', {
           ID_ARCHIVO: 'ARC-' + Utilities.getUuid().replace(/-/g, '').slice(0, 10), DRIVE_ID: d.driveId, NOMBRE: d.nombre, MIME: d.mime,
           TAMANO_BYTES: d.tamano, CATEGORIA: d.categoria, ESTATUS: 'ACTIVO', FECHA_SYNC: ahora.completo
-        });
+        }));
         cuenta.nuevos++;
       } else if (String(previo.NOMBRE) !== d.nombre || String(previo.MIME) !== d.mime || Number(previo.TAMANO_BYTES) !== d.tamano ||
                  String(previo.CATEGORIA) !== d.categoria || String(previo.ESTATUS) !== 'ACTIVO') {
@@ -151,6 +186,11 @@ function accionSincronizarArchivos_(payload, sesion, token, requestId) {
         cuenta.actualizados++;
       }
     });
+    if (filasNuevas.length) {   // todas las filas nuevas en una sola escritura (una por archivo era lentísimo)
+      var hojaArchivos = hojaBase_('ARCHIVOS');
+      hojaArchivos.getRange(hojaArchivos.getLastRow() + 1, 1, filasNuevas.length, filasNuevas[0].length).setValues(filasNuevas);
+      marcarDatosModificados_();
+    }
     // Si el listado se truncó no se puede afirmar que lo que falta ya no existe: no se inactiva nada.
     if (!listado.truncado) {
       Object.keys(existentes).forEach(function (driveId) {

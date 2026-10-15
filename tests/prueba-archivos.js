@@ -30,6 +30,46 @@ for (let io = 0; io < ORDENES.length; io++) {
     assert.ok(w.llamar('admin', 'sincronizarArchivos', {}).success, 'sin enlace usa la carpeta guardada');
   });
 
+  t('sincronizar: con el servicio avanzado de Drive (1 llamada por carpeta) y sin él (DriveApp) da el mismo catálogo', () => {
+    const catalogo = (avanzado) => {
+      const w = crearMundo(raiz, orden);
+      w.sembrarDrive();
+      if (!avanzado) delete w.ctx.Drive;
+      w.estado.llamadasDrive = 0;
+      const r = w.sincronizar();
+      assert.strictEqual(r.nuevos, 4);
+      return { lista: w.ok(w.llamar('admin', 'archivos')).archivos.map((a) => [a.nombre, a.categoria, a.mime, a.tamano]).sort(), llamadas: w.estado.llamadasDrive };
+    };
+    const rapido = catalogo(true), lento = catalogo(false);
+    assert.deepStrictEqual(rapido.lista, lento.lista);
+    assert.strictEqual(rapido.llamadas, 2, 'raíz + subcarpeta Nomina: una llamada por carpeta, sin importar cuántos archivos tengan');
+    assert.strictEqual(lento.llamadas, 0);
+  });
+
+  t('sincronizar: una carpeta a la que no se tiene acceso no inactiva el catálogo (el servicio avanzado devolvería lista vacía)', () => {
+    const w = mundo();
+    delete w.drive.carpetas.CARPETARAIZ01;                      // la compartición se retiró
+    assert.strictEqual(w.llamar('admin', 'sincronizarArchivos', {}).code, 'DRIVE_NO_DISPONIBLE');
+    assert.strictEqual(w.ok(w.llamar('admin', 'archivos')).archivos.filter((a) => a.estatus === 'ACTIVO').length, 4, 'todo sigue activo');
+  });
+
+  t('sincronizar: muchos archivos se escriben en una sola operación y un archivo con dos padres no se duplica', () => {
+    const w = mundo(false);
+    for (let i = 0; i < 120; i++) {
+      const id = 'DRV-MASIVO-' + String(i).padStart(4, '0');
+      w.drive.archivos[id] = { id, name: 'Curso ' + i + '.pdf', mime: 'application/pdf', bytes: Buffer.from('x') };
+      w.drive.carpetas.CARPETARAIZ01.files.push(id);
+    }
+    w.drive.carpetas['CARPETA-NOMINA-1'].files.push('DRV-CONTRATO-01');   // mismo archivo en dos carpetas
+    let escrituras = 0;
+    const original = w.hojas.ARCHIVOS.getRange.bind(w.hojas.ARCHIVOS);
+    w.hojas.ARCHIVOS.getRange = (...args) => { const r = original(...args); const sv = r.setValues; r.setValues = function (v) { escrituras++; return sv.call(this, v); }; return r; };
+    const r = w.sincronizar();
+    assert.strictEqual(r.nuevos, 124);
+    assert.strictEqual(w.hojas.ARCHIVOS._f.length - 1, 124);
+    assert.strictEqual(escrituras, 1, 'una sola escritura para todas las filas nuevas');
+  });
+
   t('sincronizar: es repetible (sin cambios no escribe), detecta renombres, bajas y regresos', () => {
     const w = mundo();
     const filas = w.hojas.ARCHIVOS._f.length;

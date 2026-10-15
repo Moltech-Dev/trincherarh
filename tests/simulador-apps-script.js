@@ -68,6 +68,18 @@ function crearEntorno(raiz, orden) {
     LockService: { getScriptLock: () => ({
       waitLock() { estado.bloqueosActivos++; estado.maxBloqueosAnidados = Math.max(estado.maxBloqueosAnidados, estado.bloqueosActivos); },
       releaseLock() { estado.bloqueosActivos--; } }) },
+    // Servicio avanzado Drive v3 (Drive.Files.list): una llamada por carpeta. Los tests lo quitan con `delete ctx.Drive` para probar el respaldo con DriveApp.
+    Drive: { Files: { list: (p) => {
+      estado.llamadasDrive = (estado.llamadasDrive || 0) + 1;
+      if (drive.caido) throw new Error('Drive no disponible');
+      const padre = /'([^']+)' in parents/.exec(p.q)[1];
+      const c = drive.carpetas[padre];
+      if (!c) return { files: [] };   // como la API real: un padre inexistente no falla, devuelve lista vacía
+      const archivos = c.files.map((id) => drive.archivos[id]).filter((a) => !a.trashed)
+        .map((a) => ({ id: a.id, name: a.name, mimeType: a.mime, size: /^application\/vnd\.google-apps\./.test(a.mime) ? undefined : String(a.bytes.length) }));
+      const carpetas = c.folders.map((id) => ({ id, name: drive.carpetas[id].name, mimeType: 'application/vnd.google-apps.folder' }));
+      return { files: archivos.concat(carpetas) };
+    } } },
     DriveApp: {
       getFolderById: (id) => { if (drive.caido || !drive.carpetas[id]) throw noEncontrado(); return envolverCarpeta(drive.carpetas[id]); },
       getFileById: (id) => { if (drive.caido || !drive.archivos[id]) throw noEncontrado(); return envolverArchivo(drive.archivos[id]); }

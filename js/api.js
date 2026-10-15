@@ -36,9 +36,12 @@
     return 'req-' + Date.now() + '-' + Math.random().toString(16).slice(2);
   }
 
-  async function ejecutar(url, opciones) {
+  // Acciones que legítimamente tardan más que una consulta normal (leer toda una carpeta de Drive, entregar un archivo grande).
+  const TIMEOUT_LARGO_MS = { sincronizarArchivos: 170000, descargarArchivo: 90000 };
+
+  async function ejecutar(url, opciones, esperaMs) {
     const controlador = new AbortController();
-    const limite = setTimeout(() => controlador.abort(), window.APP_CONFIG.API_TIMEOUT_MS);
+    const limite = setTimeout(() => controlador.abort(), esperaMs || window.APP_CONFIG.API_TIMEOUT_MS);
     let respuesta;
     try {
       respuesta = await fetch(url, Object.assign({}, opciones, {
@@ -93,7 +96,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: cuerpo
-    }).then(function (json) {
+    }, TIMEOUT_LARGO_MS[action]).then(function (json) {
       registrar(action, inicio, json, null);
       return json;
     }, function (err) {
