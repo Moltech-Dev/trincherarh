@@ -218,3 +218,4 @@ a.indicador:hover { background: linear-gradient(135deg, #fff5ea 0%, #ffd9b0 100%
 .mini-celda { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
 .mini-pista { width: 90px; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
 .mini-barra { height: 100%; background: #f58220; border-radius: 4px; }
+.boton-generar { margin: 2px 0 10px; }

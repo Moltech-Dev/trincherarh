@@ -11,6 +11,41 @@
 
   const ETIQUETA_ROL = { ADMIN: 'Administrador', USUARIO: 'Usuario' };
 
+  // Sin caracteres ambiguos (0/O, 1/l/I) para que se pueda dictar o copiar sin confusiones.
+  const ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  function generarPassword() {
+    const bytes = new Uint32Array(14);
+    window.crypto.getRandomValues(bytes);
+    let p = '';
+    bytes.forEach(function (b) { p += ALFABETO[b % ALFABETO.length]; });
+    return p;
+  }
+
+  /** Al campo de contraseña del formulario le agrega el ojo (ver lo que se escribe) y el botón de generar una segura. */
+  function ayudasDePassword(modal) {
+    const input = modal.dialogo.querySelector('input[name="password"]');
+    if (!input) return;
+    const envoltura = el('div', { clase: 'campo-clave' });
+    input.replaceWith(envoltura);
+    const icono = el('i', { clase: 'fa-solid fa-eye', 'aria-hidden': 'true' });
+    const ojo = el('button', { type: 'button', clase: 'btn-ojo', 'aria-label': 'Mostrar contraseña', 'aria-pressed': 'false' }, [icono]);
+    envoltura.append(input, ojo);
+    function ver(visible) {
+      input.type = visible ? 'text' : 'password';
+      icono.className = 'fa-solid ' + (visible ? 'fa-eye-slash' : 'fa-eye');
+      ojo.setAttribute('aria-pressed', String(visible));
+      ojo.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    }
+    ojo.addEventListener('click', function () { ver(input.type === 'password'); });
+    const generar = el('button', { type: 'button', clase: 'boton boton-secundario boton-chico boton-generar', texto: 'Generar contraseña segura' });
+    generar.addEventListener('click', function () {
+      input.value = generarPassword();
+      ver(true);   // se muestra para poder copiarla o dictarla
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    envoltura.after(generar);
+  }
+
   window.Vistas = window.Vistas || {};
   window.Vistas.usuarios = function (ctx) {
     const raiz = el('div');
@@ -67,7 +102,7 @@
         !soyYo && !datos.archivos.length ? el('p', { clase: 'nota-chica', texto: 'Aún no hay archivos activos. Sincroniza la carpeta de Drive en la pantalla Archivos y luego asígnalos aquí.' }) : null
       ]);
 
-      U.formularioModal({
+      const modal = U.formularioModal({
         titulo: editando ? 'Editar ' + usuario.usuario : 'Nuevo usuario',
         ancha: true,
         intro: intro,
@@ -93,6 +128,7 @@
           cargar(true);
         }
       });
+      ayudasDePassword(modal);
     }
 
     function pintar() {
