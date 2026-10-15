@@ -1,0 +1,264 @@
+/* Base, tema y layout del shell. Sin estilos en línea en el HTML (compatible con la CSP de Vercel). */
+:root {
+  --acento: #f58220;              /* amarillo dorado de la marca (tomado del escudo del logotipo) */
+  --acento-oscuro: #d96c0e;       /* hover/pulsado */
+  --acento-suave: #fff0e0;        /* fondos tenues: ítem activo, insignias */
+  --dorado-icono: #c2600a;        /* iconos y detalles sobre blanco (contraste ≥ 3:1) */
+  --enlace: #a84e00;              /* texto de enlace sobre blanco (contraste AA) */
+  --enfoque: #b35400;             /* anillo de enfoque del teclado */
+  --sidebar: #000000;             /* menú lateral negro: se funde con el fondo del logotipo */
+  --sidebar-texto: #d7dbe0;
+  --sidebar-borde: #262a2f;
+  --fondo: #f6f5f3;
+  --tarjeta: #ffffff;
+  --texto: #1c232b;
+  --texto-suave: #55606b;
+  --borde: #dde2e7;
+  --ok: #2e7d5b;
+  --alerta: #b7791f;
+  --error: #b84a3f;
+  --error-fondo: #fbeceb;
+  --ok-fondo: #e9f5ee;
+  --alerta-fondo: #fff0e0;
+  --ancho-sidebar: 276px;
+  --radio: 10px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  line-height: 1.5;
+}
+
+h1 { font-size: 1.4rem; margin: 0 0 4px; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; }
+p { margin: 0 0 12px; color: var(--texto-suave); }
+a { color: var(--enlace); }
+code { background: #eef1f4; padding: 1px 6px; border-radius: 4px; word-break: break-all; }
+
+:focus-visible { outline: 3px solid var(--enfoque); outline-offset: 2px; }
+
+.saltar {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  background: var(--acento);
+  color: #1c232b;
+  padding: 8px 14px;
+  border-radius: 0 0 8px 8px;
+  font-weight: 700;
+  z-index: 100;
+}
+.saltar:focus { top: 0; }
+
+/* ---------- Tarjetas y botones (compartidos) ---------- */
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.boton {
+  background: var(--acento);
+  color: #1c232b;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+}
+.boton:hover:not(:disabled) { background: var(--acento-oscuro); color: #1c232b; }
+.boton:disabled { opacity: 0.6; cursor: progress; }
+.boton-secundario { background: transparent; color: var(--texto); border: 1px solid var(--borde); }
+.boton-secundario:hover:not(:disabled) { background: #eef1f4; color: var(--texto); }
+
+/* ---------- Shell ---------- */
+.shell { min-height: 100vh; }
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--ancho-sidebar);
+  background: var(--sidebar);
+  color: var(--sidebar-texto);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+}
+
+/* El logotipo (círculo negro y naranja) se muestra centrado sobre el menú negro. */
+.sidebar-logo {
+  margin: 18px 14px 8px;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--acento);
+  text-align: center;
+}
+.sidebar-logo img { display: inline-block; width: 132px; max-width: 60%; height: auto; border-radius: 50%; box-shadow: 0 0 0 3px #1b1b1b; }
+
+.sidebar nav { flex: 1; overflow-y: auto; padding: 4px 8px; scrollbar-color: #4a4f55 #000; }
+.sidebar ul { list-style: none; margin: 0; padding: 0; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  margin: 2px 0;
+  color: var(--sidebar-texto);
+  text-decoration: none;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}
+.nav-item i { width: 20px; text-align: center; color: var(--acento); }
+.nav-item:hover { background: rgba(255, 255, 255, 0.09); color: #fff; }
+.nav-item[aria-current='page'] {
+  background: rgba(245, 130, 32, 0.18);
+  border-left-color: var(--acento);
+  color: #fff;
+  font-weight: 700;
+}
+.sidebar :focus-visible { outline-color: var(--acento); }
+
+/* Contador a la derecha de un elemento del menú (p. ej. vehículos en pensión). */
+.nav-contador {
+  margin-left: auto;
+  min-width: 28px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--acento);
+  color: #111;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.5;
+}
+.nav-contador[hidden] { display: none; }
+
+.sidebar-pie { border-top: 1px solid var(--sidebar-borde); padding: 10px 8px 12px; }
+.usuario-activo { padding: 4px 12px 8px; }
+.usuario-activo .nombre { display: block; color: #fff; font-weight: 700; overflow-wrap: anywhere; }
+.usuario-activo .rol {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(245, 130, 32, 0.2);
+  color: var(--acento);
+  font-weight: 700;
+}
+
+.principal { margin-left: var(--ancho-sidebar); min-width: 0; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  background: var(--tarjeta);
+  border-bottom: 1px solid var(--borde);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar h1 { margin: 0; font-size: 1.25rem; }
+
+/* Números rápidos del día, visibles en todas las pantallas. */
+.indicadores { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.indicadores[hidden] { display: none; }
+.indicador {
+  display: flex;
+  flex-direction: column;
+  min-width: 96px;
+  padding: 4px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--texto);
+  text-decoration: none;
+  line-height: 1.2;
+}
+a.indicador:hover { background: #fff8f1; border-color: var(--acento); }
+.indicador-destacado { border-left: 4px solid var(--acento); }
+.indicador-valor { font-size: 1.1rem; font-weight: 800; }
+.indicador-rotulo { font-size: 0.72rem; color: var(--texto-suave); }
+.btn-menu {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--texto);
+}
+
+/* El contenido aprovecha todo el ancho disponible a la derecha del menú. */
+#contenido { padding: 24px 28px; max-width: none; outline: none; }
+
+.sidebar-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 18, 0.55);
+  z-index: 40;
+}
+
+/* ---------- Vistas ---------- */
+.insignia {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--alerta-fondo);
+  color: var(--alerta);
+  margin-bottom: 10px;
+}
+.dato-lista { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0 0 8px; }
+.dato-lista dt { color: var(--texto-suave); }
+.dato-lista dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* ---------- Página de diagnóstico (temporal, Fase 1) ---------- */
+.cabecera {
+  background: #ffffff;
+  border-bottom: 4px solid var(--acento);
+  padding: 12px 16px;
+  text-align: center;
+}
+.cabecera img { max-width: 320px; width: 70%; height: auto; border-radius: var(--radio); }
+.pagina { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+
+.tabla-contenedor { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+th { color: var(--texto-suave); font-weight: 600; }
+
+.estado { font-weight: 700; white-space: nowrap; }
+.estado.ok, .resumen.ok { color: var(--ok); }
+.estado.fallo, .resumen.fallo { color: var(--error); }
+.estado.pendiente { color: var(--alerta); }
+.resumen { font-weight: 700; margin-top: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

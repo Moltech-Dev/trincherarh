@@ -1,0 +1,162 @@
+/* Formularios, mensajes y página de acceso. */
+.campo { margin-bottom: 16px; }
+.campo label { display: block; font-weight: 600; margin-bottom: 6px; }
+.campo .ayuda { display: block; font-size: 0.85rem; color: var(--texto-suave); margin-top: 4px; }
+
+.campo input[type='text'],
+.campo input[type='password'],
+.campo input[type='date'],
+.campo input[type='time'],
+.campo select,
+.campo textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--texto);
+  background: #fff;
+  border: 1px solid #b9c2cb;
+  border-radius: 8px;
+}
+.campo textarea { resize: vertical; min-height: 84px; }
+.campo input[readonly] { background: #f4f2ea; color: var(--texto); border-style: dashed; }
+.campo [aria-invalid='true'] { border-color: var(--error); }
+.campo input:focus-visible,
+.campo select:focus-visible,
+.campo textarea:focus-visible { outline: 3px solid var(--enfoque); outline-offset: 1px; border-color: var(--enfoque); }
+
+.campo-clave { position: relative; }
+.campo-clave input { padding-right: 52px; }
+.btn-ojo {
+  position: absolute;
+  right: 4px;
+  top: 2px;
+  width: 44px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--texto-suave);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.mensaje {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+}
+.mensaje.error { background: var(--error-fondo); color: #7d2a22; border-color: #efc6c2; }
+.mensaje.exito { background: var(--ok-fondo); color: #1d5a40; border-color: #bfe0cf; }
+.mensaje.aviso { background: var(--alerta-fondo); color: #7a5213; border-color: #f0d9a8; }
+
+/* ---------- Login ---------- */
+.acceso {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(245, 130, 32, 0.22) 0%, rgba(0, 0, 0, 0) 55%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.66) 50%, rgba(0, 0, 0, 0.86) 100%),
+    url('../img/fondo-login.jpg') center / cover no-repeat,
+    #000;
+}
+.acceso-caja {
+  width: 100%;
+  max-width: 420px;
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 24px;
+  border-top: 5px solid var(--acento);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.acceso-logo { display: block; width: 170px; max-width: 55%; height: auto; margin: -4px auto 14px; border-radius: 50%; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28); }
+.acceso-caja h1 { text-align: center; font-size: 1.25rem; margin-bottom: 4px; }
+.acceso-caja .subtitulo { text-align: center; margin-bottom: 20px; }
+.acceso-caja .boton { width: 100%; }
+.acceso-pie { text-align: center; font-size: 0.85rem; margin: 16px 0 0; }
+
+/* ---------- Acceso con foto de fondo ---------- */
+/* La foto (assets/img/fondo.jpg) va oscurecida en la parte baja de la pantalla; arriba se funde con negro, lo que también
+   cubre el texto "Gruas Angel" que ya trae pintado la fotografía. */
+.acceso-con-fondo {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
+  gap: clamp(24px, 5vw, 80px);
+  align-items: center;
+  padding: clamp(24px, 5vw, 64px) clamp(16px, 6vw, 96px);
+  background: #0a0a0a;
+  isolation: isolate;
+}
+.acceso-con-fondo::before {
+  content: '';
+  position: fixed;
+  inset: auto 0 0 0;
+  height: 78vh;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, #0a0a0a 0%, #0a0a0a 26%, rgba(10, 10, 10, 0) 52%),
+    linear-gradient(100deg, rgba(0, 0, 0, 0.80) 0%, rgba(0, 0, 0, 0.50) 55%, rgba(30, 14, 0, 0.32) 100%),
+    url('../assets/img/fondo.jpg') center bottom / cover no-repeat;
+}
+.acceso-hero { display: flex; flex-direction: column; justify-content: space-between; align-self: stretch; min-height: min(78vh, 640px); color: #fff; }
+.acceso-hero-logo { display: block; width: clamp(160px, 18vw, 240px); height: auto; border-radius: 6px; }
+.acceso-hero-texto { margin: auto 0; }
+.acceso-kicker { margin: 0 0 14px; color: var(--acento); font-size: 0.85rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; }
+.acceso-titular { margin: 0 0 16px; max-width: 14ch; color: #fff; font-size: clamp(2.2rem, 4.6vw, 4rem); font-weight: 800; line-height: 1.08; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5); }
+.acceso-bajada { margin: 0 0 22px; max-width: 34ch; color: #d6dae0; font-size: clamp(1rem, 1.4vw, 1.2rem); line-height: 1.6; }
+.acceso-linea { display: block; width: 84px; height: 4px; border-radius: 2px; background: var(--acento); }
+.acceso-hero-pie { margin: 0; color: #aeb5bd; font-size: 0.9rem; }
+.acceso-con-fondo .acceso-caja { margin: 0; max-width: none; background: linear-gradient(160deg, #ffffff 0%, #fff6ee 60%, #ffe3c6 100%); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); }
+.acceso-con-fondo .acceso-logo { display: none; }
+@media (max-width: 900px) {
+  .acceso-con-fondo { grid-template-columns: minmax(0, 1fr); align-content: center; justify-items: center; }
+  .acceso-con-fondo .acceso-hero { display: none; }
+  .acceso-con-fondo .acceso-caja { width: 100%; max-width: 440px; }
+  .acceso-con-fondo .acceso-logo { display: block; }
+  .acceso-con-fondo::before { height: 60vh; }
+}
+
+.formulario-cuenta { max-width: 420px; }
+
+/* ---------- Nueva entrada ---------- */
+.formulario-entrada { max-width: none; }
+.grupo { border: 1px solid var(--borde); border-radius: var(--radio); background: var(--tarjeta); padding: 18px 18px 4px; margin: 0 0 20px; min-width: 0; }
+.grupo legend { font-weight: 800; padding: 0 8px; }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 18px; }
+.rejilla .ancho-completo { grid-column: 1 / -1; }
+.obligatorio { color: var(--error); font-weight: 700; }
+.error-campo { display: block; color: var(--error); font-size: 0.85rem; margin-top: 4px; font-weight: 600; }
+.nota-tarifa { background: var(--acento-suave); border: 1px solid #f0c18f; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.92rem; color: #5a2d00; }
+.nota-tarifa.nota-error { background: var(--error-fondo); border-color: #efc6c2; color: #7d2a22; }
+.nota-tarifa.nota-aviso { background: var(--alerta-fondo); border-color: #f0d9a8; color: #7a5213; }
+.acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+
+.resultado-etiqueta { margin: 8px 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.resultado-folio { margin: 0 0 12px; font-size: 2rem; font-weight: 800; letter-spacing: 0.04em; color: #1c232b; font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace; overflow-wrap: anywhere; }
+
+/* ---------- Dos accesos en la misma pantalla (pestañas) ---------- */
+.acceso-pestanas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 20px; background: #15130d; border-radius: 10px; }
+.acceso-pestana {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #d7dbe0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.acceso-pestana:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.acceso-pestana[aria-selected='true'] { background: var(--acento); color: #111; }
+.acceso-pestana:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+/* El acceso de servicio lleva el dorado metálico de su escudo. */
+.boton-servicio { background: linear-gradient(135deg, #f3d57a 0%, #d96c0e 55%, #c2600a 100%); color: #1c1500; }
+.boton-servicio:hover:not(:disabled) { background: linear-gradient(135deg, #f7dd8f 0%, #d6a51a 55%, #b88a0a 100%); color: #1c1500; }
+.acceso-hero-logo-servicio { width: clamp(180px, 20vw, 280px); }

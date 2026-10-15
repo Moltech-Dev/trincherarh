@@ -1,0 +1,48 @@
+/* Tableta y móvil: el sidebar pasa a ser un panel deslizable. */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: none;
+  }
+  body.menu-abierto .sidebar { transform: none; box-shadow: 0 0 40px rgba(0, 0, 0, 0.3); }
+  body.menu-abierto { overflow: hidden; }
+
+  .principal { margin-left: 0; }
+  .btn-menu { display: inline-flex; align-items: center; justify-content: center; }
+  .topbar { padding: 10px 16px; flex-wrap: wrap; }
+  .indicadores { flex: 1 0 100%; margin-left: 0; justify-content: flex-start; }
+  .indicador { flex: 1 1 0; min-width: 0; padding: 3px 8px; }
+  .indicador-valor { font-size: 1rem; }
+  .indicador:last-child { flex-grow: 1.7; }   /* el importe cobrado necesita más espacio */
+  .pestana { padding: 10px 12px; font-size: 0.95rem; }
+  #contenido { padding: 16px; }
+}
+
+@media (max-width: 600px) {
+  :root { --pad-tarjeta: 16px; }
+  .dato-lista { grid-template-columns: 1fr; gap: 0; }
+  .dato-lista dd { margin-bottom: 10px; }
+  .acceso-caja { padding: 20px 16px; }
+
+  /* Diagnóstico: oculta la columna de tiempo en pantallas angostas. */
+  .tabla-diag th:nth-child(4), .tabla-diag td:nth-child(4) { display: none; }
+}
+
+/* Tablas de datos: en pantallas angostas cada fila se muestra como una tarjeta (las celdas llevan data-label). */
+@media (max-width: 700px) {
+  .tabla-datos:not(.tabla-simple) thead { position: absolute; left: -9999px; }
+  .tabla-datos:not(.tabla-simple), .tabla-datos:not(.tabla-simple) tbody, .tabla-datos:not(.tabla-simple) tr, .tabla-datos:not(.tabla-simple) td { display: block; width: 100%; }
+  .tabla-datos:not(.tabla-simple) tr { border: 1px solid var(--borde); border-radius: 10px; margin-bottom: 12px; padding: 6px 12px; background: #fff; }
+  .tabla-datos:not(.tabla-simple) td { display: flex; justify-content: space-between; align-items: center; gap: 14px; text-align: right; border: 0; padding: 6px 0; white-space: normal; }
+  .tabla-datos:not(.tabla-simple) td::before { content: attr(data-label); font-weight: 600; color: var(--texto-suave); text-align: left; flex: none; }
+  .tabla-datos:not(.tabla-simple) td.tabla-vacia { display: block; text-align: center; }
+  .tabla-datos .col-fija { position: static; background: transparent; box-shadow: none; }
+  .acciones-filtro { width: 100%; }
+  .tabla-datos:not(.tabla-simple) td.tabla-vacia::before { content: none; }
+  .movimiento { grid-template-columns: 1fr max-content; }
+  .movimiento-fecha, .movimiento-usuario { grid-column: 1 / -1; }
+  .desglose { grid-template-columns: 1fr max-content; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .kpi-valor { font-size: 1.2rem; }
+}

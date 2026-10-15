@@ -1,0 +1,12 @@
+{
+  "name": "trinchera-rh",
+  "private": true,
+  "description": "Frontend estático + Google Apps Script + Google Sheets. Este package.json solo sirve para ejecutar las pruebas y el servidor local; el sistema no usa Node en producción.",
+  "scripts": {
+    "test": "node tests/ejecutar.js",
+    "local": "node tests/servidor-local.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
